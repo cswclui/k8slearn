@@ -23,7 +23,8 @@ proxy:
   
   # helm chart
   image:
-    name: 'endangeredfish/shinyproxy'
+    #name: 'endangeredfish/shinyproxy'
+    name: 'cswclui/shinyproxy'
     tag: '2.5.0.210616'
 
   users:
@@ -53,9 +54,17 @@ proxy:
     type: NodePort
 
   specs:
+    - id: vscode-rootless-dind
+      display-name: vscode with rootless DinD
+      description: vscode with rootless DinD
+      container-image: cswclui/rootless-dind:1.1
+      port: 8081 #NGINX at 8081 port forwards to code-server at 8080
+      container-privileged: true
+      container-memory-limit: 400Mi
+      
     - id: vscode-sidu
       display-name: VSCode,+MySQL Python+apache+SIDU
-      description: test1234                                                              
+      description: 1112                                                              
       container-image: cswclui/vscode-sidu:1.0
       container-cmd: ["start.sh"]
         #- start.sh
