@@ -1,0 +1,152 @@
+---
+ingress:
+  enabled: true
+  hosts:
+    - shinyproxy.vlab.com
+proxy:
+  authentication: simple
+  admin-groups: scientists
+  container-backend: kubernetes
+  container-wait-time: 1200000
+  heartbeat-rate: 10000
+  heartbeat-timeout: 50000
+  # customized
+  unsafe-label: true
+  engagement:
+    enabled: true
+    filter-header:
+      - 0x828d
+      - 0x829a
+      - 0x82ca
+    automatic-timeout: 180000
+    max-age: PT4H
+  
+  # helm chart
+  image:
+    name: 'endangeredfish/shinyproxy'
+    tag: '2.5.0.210616'
+
+  users:
+  - name: jack
+    password: password
+    groups: scientists
+  - name: jeff
+    password: password
+    groups: mathematicians
+  kubernetes:
+    namespace: aiden
+    custom-namespace: true
+    namespace-prefix: vlab
+    pod-wait-time: 120000
+  labels:
+    component: shinyproxy
+    role: shinyproxy-app
+  landing-page: /
+  logo-url: https://www.openanalytics.eu/shinyproxy/logo.png
+  port: 8080
+  same-site-cookie: none
+  
+  # helm chart
+  service:
+    ports:
+      nodePort: 30010
+    type: NodePort
+
+  specs:
+    - container-cmd:
+        - R
+        - '-e'
+        - shinyproxy::run_01_hello()
+      container-image: openanalytics/shinyproxy-demo
+      description: Application which demonstrates the basics of a Shiny app
+      display-name: Hello Application 2
+      id: 01_hello
+    - container-cmd:
+        - R
+        - '-e'
+        - shinyproxy::run_06_tabsets()
+      container-image: openanalytics/shinyproxy-demo
+      id: 06_tabsets
+    - container-env:
+        DISABLE_AUTH: true
+        USER: '#{proxy.userId}'
+        USERID: ${USERID}
+        WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+      container-image: openanalytics/shinyproxy-rstudio-ide-demo
+      display-name: RStudio Server ShinyProxy Demo
+      id: rstudio
+      port: 8787
+    - container-env:
+        DISABLE_AUTH: true
+        USERID: rstudio
+        WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+      container-image: cswclui/myrstudio:2.0
+      description: should access through /app_direct/rstudio_tidyverse/
+      display-name: RStudio Server - tidyverse
+      id: rstudio_tidyverse
+      port: 8787
+    - container-image: apache/zeppelin:0.8.1
+      display-name: Apache Zeppelin
+      id: zeppelin
+      port: 8080
+    - container-image: nginx
+      display-name: nginx
+      id: nginx
+      kubernetes-additional-manifests:
+        - |
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: "pvc-#{proxy.userId}-#{proxySpec.id}"
+          spec:
+            storageClassName: rook-cephfs
+            accessModes:
+              - ReadWriteMany
+            resources:
+              requests:
+                storage: 256Mi
+      kubernetes-pod-patches: |
+        - op: add
+          path: /spec/containers/0/volumeMounts
+          value:
+          - mountPath: "/usr/share/nginx/html"
+            name: "nginx-volume"
+            subPath: nginx
+        - op: add
+          path: /spec/volumes
+          value:
+          - name: "nginx-volume"
+            persistentVolumeClaim:
+              claimName: "pvc-#{proxy.userId}"
+      port: 80
+    - container-image: cswclui/xterm.js:patched
+      description: original version (xtermjs/xterm.js) is not working under the shinyproxy due to absolute path in index.html and client.ts. Tthe relative path prefix in client.ts and index.html is added (e.g. line129,157 in client.ts)
+      display-name: xterm.js (patched)
+      id: xterm.js
+      port: 3000
+    - container-image: rocker/shiny
+      display-name: official rshiny docker image
+      id: rshiny
+      port: 3838
+    - container-image: cswclui/learnrdemo
+      display-name: learnr tutorial demo in rshiny server
+      id: learnr_demo
+      port: 3838
+    - container-cmd:
+        - start.sh
+        - jupyter
+        - notebook
+        - '--NotebookApp.token='''''
+        - '--NotebookApp.base_url=''/app_direct/jupyter/'''
+        - '--NotebookApp.allow_origin=''*'''
+      container-image: cswclui/mynotebook:1.1
+      description: not working by default, need to configure base_url of jupyternotebook and configure nginx to redirect URI from / to app_direct/jupyter
+      display-name: Jupyter base-notebook
+      id: jupyter
+      port: 7777
+    - container-image: registry.jetbrains.team/p/prj/containers/projector-idea-c
+      description: Jetbrains IDE
+      display-name: Jetbrains IDE
+      id: jetbrains
+      port: 8887
+  title: Open Analytics Shiny Proxy

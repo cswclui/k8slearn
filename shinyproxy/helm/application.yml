@@ -1,0 +1,105 @@
+proxy:
+  title: Open Analytics Shiny Proxy
+  logo-url: https://www.openanalytics.eu/shinyproxy/logo.png
+  template-path: /home/aidenef/Desktop/templates
+  landing-page: /
+  heartbeat-rate: 5000
+  heartbeat-timeout: 1200000
+  container-wait-time: 60000
+  port: 8080
+  authentication: simple
+  unsafe-label: true
+  admin-groups: scientists
+  usage-stats-url: jdbc:mysql://localhost/shinyproxy
+  usage-stats-username: root
+  usage-stats-password: root
+  # Example: 'simple' authentication configuration
+  users:
+  - name: jack
+    password: password
+    groups: scientists
+  - name: jeff
+    password: password
+    groups: mathematicians
+  # Docker configuration
+  docker:
+    url: http://localhost:2375
+    port-range-start: 20000
+  config:
+    auto-update: true
+    interval: 5000
+    enable-refresh-api: false
+  engagement:
+    enabled: true
+    filter-header:
+      - 0x828d
+      - 0x829a
+      - 0x82ca
+    automatic-timeout: 180000
+    max-age: PT4H
+  specs:
+  - id: 01_hello
+    display-name: Hello Application
+    description: Application which demonstrates the basics of a Shiny app
+    container-cmd: ["R", "-e", "shinyproxy::run_01_hello()"]
+    container-image: openanalytics/shinyproxy-demo
+    access-groups: [scientists, mathematicians]
+  - id: 06_tabsets
+    container-cmd: [ "R", "-e", "shinyproxy::run_06_tabsets()" ]
+    description: Application which demonstrates the basics of a Shiny app 06
+    container-image: openanalytics/shinyproxy-demo
+    access-groups: scientists
+  - id: python-lab1
+    display-name: Python lab1
+    description: This is the first exercise in python
+    container-image: cswclui/vlab:3.0
+    container-cmd: [ "start.sh" ]
+    port: 8081
+    container-volumes: [ "/vol/#{proxy.userId}/vscode-cfg:/app","/vol/#{proxy.userId}/vscode/lab1:/root/workspace" ]
+    container-env:
+     USER: "#{proxy.userId}"
+     PROXYID: "#{proxy.id}"
+     LABID: "lab1"
+     EXEC: "git clone https://github.com/cswclui/sample-python-lab1 /root/workspace/lab1"
+  - id: postgres
+    display-name: postgres with pgadmin
+    description: postgres with pgadmin
+    container-image: cswclui/mypostgres-pgadmin:1.1
+    port: 8083 #nginx->vscode/posgres
+    container-env:
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_USER: root
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+      #send /app_direct/postgres to pgadmin
+      #SCRIPT_NAME: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"  #host pgadmin under subdirectory
+      SCRIPT_NAME: /app_direct/postgres/db #postgres generate URL with this prefix (no trailing /)
+    #target-path: /app_direct/postgres #prefix added to the URL sent to the app
+    container-volumes: ["vol-#{proxy.userId}-posgres:/var/lib/postgresql/data",
+    "vol-#{proxy.userId}-pgadmin:/var/lib/pgadmin",
+    "vol-#{proxy.userId}-cfg:/home/root/.vscode",
+    "vol-#{proxy.userId}-vscode-postgres:/home/root/workspace"
+    ]
+    container-network: sp-example-net
+    sub-apps:
+    - path: db
+      display-name: db test display-name
+      description: db test description
+    - path: db2
+      display-name: db2 test display-name
+      description : db2 test decription
+
+logging:
+  level:
+    eu.openanalytics.containerproxy.service.HeartbeatService: INFO
+  file:
+    name: shinyproxy.log
+
+spring:
+  session:
+    store-type: redis
+    timeout: PT4H
+  redis:
+    host: localhost
+    port: 6379
+    password: adminadmin

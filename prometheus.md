@@ -15,19 +15,29 @@ helm repo update
 
 
 # Launch Prometheus
+
+Check services
+
+`kubectl get svc`
+
 `kubectl port-forward svc/prometheus-kube-prometheus-prometheus 19090:9090`
 
 Access promethues at localhost:19090
 
 ## Grafana
 
-Get password of grafana
+Get password of grafana.
+
  `kubectl get secret --namespace default prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo`
 
 `kubectl port-forward svc/prometheus-grafana 10080:80`
 
 username: admin, pw: prom-operator
 Access grafana at localhost:10080
+
+## Uninstall
+
+`helm uninstall prometheus`
 
 # Ref
 
