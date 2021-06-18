@@ -1,30 +1,36 @@
 proxy:
   title: Open Analytics Shiny Proxy
   logo-url: https://www.openanalytics.eu/shinyproxy/logo.png
-  template-path: /home/aidenef/Desktop/templates
-  landing-page: /
-  heartbeat-rate: 5000
-  heartbeat-timeout: 1200000
-  container-wait-time: 60000
+  template-path: ./templates/modified_navbar
   port: 8080
   authentication: simple
-  unsafe-label: true
-  admin-groups: scientists
-  usage-stats-url: jdbc:mysql://localhost/shinyproxy
-  usage-stats-username: root
-  usage-stats-password: root
-  # Example: 'simple' authentication configuration
+  admin-groups: admins  
+  heartbeat-rate: 10000
+  heartbeat-timeout: 60000                                    
   users:
   - name: jack
     password: password
-    groups: scientists
+    groups: admins
   - name: jeff
     password: password
-    groups: mathematicians
-  # Docker configuration
+  - name: u1
+    password: u1
+  - name: u2
+    password: u2
+  - name: u3
+    password: u3
+  - name: u4
+    password: u4
+  - name: u5
+    password: u5
+  - name: u6
+    password: u6
+  - name: u7
+    password: u7
+  - name: u8
+    password: u8
   docker:
-    url: http://localhost:2375
-    port-range-start: 20000
+      internal-networking: true
   config:
     auto-update: true
     interval: 5000
@@ -33,44 +39,90 @@ proxy:
     enabled: true
     filter-header:
       - 0x828d
-      - 0x829a
-      - 0x82ca
-    automatic-timeout: 180000
-    max-age: PT4H
+    automatic-timeout: 60000
   specs:
-  - id: 01_hello
-    display-name: Hello Application
-    description: Application which demonstrates the basics of a Shiny app
-    container-cmd: ["R", "-e", "shinyproxy::run_01_hello()"]
-    container-image: openanalytics/shinyproxy-demo
-    access-groups: [scientists, mathematicians]
-  - id: 06_tabsets
-    container-cmd: [ "R", "-e", "shinyproxy::run_06_tabsets()" ]
-    description: Application which demonstrates the basics of a Shiny app 06
-    container-image: openanalytics/shinyproxy-demo
-    access-groups: scientists
-  - id: python-lab1
-    display-name: Python lab1
-    description: This is the first exercise in python
-    container-image: cswclui/vlab:3.0
-    container-cmd: [ "start.sh" ]
+  - id: vscode-sidu
+    display-name: VSCode,+MySQL Python+apache+SIDU
+    description: test1234                                                              
+    container-image: cswclui/vscode-sidu:1.0
+    container-cmd: ["start.sh"]                                                   
     port: 8081
-    container-volumes: [ "/vol/#{proxy.userId}/vscode-cfg:/app","/vol/#{proxy.userId}/vscode/lab1:/root/workspace" ]
+    container-network: sp-example-net
     container-env:
-     USER: "#{proxy.userId}"
-     PROXYID: "#{proxy.id}"
-     LABID: "lab1"
-     EXEC: "git clone https://github.com/cswclui/sample-python-lab1 /root/workspace/lab1"
+      MYSQL_ROOT_PASSWORD: 12345
+    sub-apps:
+      - path: port/80/index.php
+        display-name: SIDU Database browser
+        description: nil test
+
+  - id: oracle-mysql-datagrip
+    display-name: oracle ,mysql datagrip vscode
+    description: oracle ,mysql datagrip vscode (with mysql 8 server )
+    container-image: cswclui/oracle-mysql-datagrip-vscode:1.2
+    port: 8081 
+    #port: 80
+    container-network: sp-example-net
+    container-cpu-limit: 2.0
+    #container-volumes: ["vol-#{proxy.userId}-datagrip:/home/projector-user"]
+    container-cmd: ["/usr/local/bin/start.sh"] 
+    container-env:
+      WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+
+
+  - id: vscode-rootless-dind
+    display-name: vscode with rootless DinD
+    description: vscode with rootless DinD
+    container-image: cswclui/rootless-dind:1.1
+    port: 8081 #NGINX at 8081 port forwards to code-server at 8080
+    container-privileged: true
+    container-memory-limit: 2000m
+    container-volumes: [ "vol-#{proxy.userId}-cfg:/home/rootless/app",
+    "vol-#{proxy.userId}-vscode:/home/rootless/workspace",
+    "vol-temp-#{proxy.userId}-docker:/home/rootless/.local/share/docker"]
+    container-network: sp-example-net
+
+  - id: filebrowser
+    display-name: File Browser
+    description: File Browser
+    container-image: cswclui/myfilebrowser
+    port: 9000 
+    container-volumes: [ "vol-#{proxy.userId}-cfg:/data/cfg",
+    "vol-#{proxy.userId}-vscode:/data/vscode",
+    "vol-#{proxy.userId}-vscode-lab1:/data/vscode-lab1",
+    "vol-#{proxy.userId}-vscode-lab2:/data/vscode-lab2",
+    "vol-#{proxy.userId}-jetbrainsc:/data/jetbrain-community",
+    "vol-#{proxy.userId}-jetbrains:/data/jetbrain-ultimate"    
+    ]
+    container-network: sp-example-net
+    container-cmd: ["/filebrowser","-b","#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}",
+    "--database=/home/rootless/database.db"
+    ]
+
+
+  - id: jupyter #should be named jupyter and allow CORS
+    display-name: Jupyter Notebook Data science 
+    description: Jupyter Notebook is a web-based interactive computational environment for creating Jupyter notebook documents.
+    container-cmd: ["start-notebook.sh", "--NotebookApp.token=''", 
+    --NotebookApp.allow_origin='*',
+    "--NotebookApp.base_url=#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"]
+    #container-image: openanalytics/shinyproxy-juypter-datascience
+    container-image: cswclui/mynotebook:2.0
+    container-volumes: [ "vol-#{proxy.userId}-jupyter-lab1:/home/jovyan/"]
+    port: 7777 #8888
+    #target-path: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+    container-network: sp-example-net
+
+ 
   - id: postgres
-    display-name: postgres with pgadmin
-    description: postgres with pgadmin
+    display-name: postgres with vscode
+    description: postgres with vscode
     container-image: cswclui/mypostgres-pgadmin:1.1
     port: 8083 #nginx->vscode/posgres
     container-env:
       POSTGRES_PASSWORD: 12345
       POSTGRES_USER: root
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_DEFAULT_EMAIL: root@root.com
+      PGADMIN_DEFAULT_PASSWORD: 12345
       #send /app_direct/postgres to pgadmin
       #SCRIPT_NAME: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"  #host pgadmin under subdirectory
       SCRIPT_NAME: /app_direct/postgres/db #postgres generate URL with this prefix (no trailing /)
@@ -81,25 +133,33 @@ proxy:
     "vol-#{proxy.userId}-vscode-postgres:/home/root/workspace"
     ]
     container-network: sp-example-net
-    sub-apps:
-    - path: db
-      display-name: db test display-name
-      description: db test description
-    - path: db2
-      display-name: db2 test display-name
-      description : db2 test decription
+    
 
+  - id: rstudio_tidyverse
+    display-name: RStudio Server - tidyverse 
+    description:  img built from openanalytics/shinyproxy-demo with lib from rocker/tidyverse. Only files within  home/rstudio/workspace is persisted
+    container-image: cswclui/myrstudio:2.1
+    port: 8787
+    container-env:
+      USERID: rstudio
+      MyUSER: "#{proxy.userId}"
+      TEST: 12334
+      WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+      #PASSWORD: 12345 #can enable it?
+      DISABLE_AUTH: true
+    container-volumes: [ "vol-#{proxy.userId}-rstudio:/home/rstudio/workspace"]
+      #container-cmd: ["/init"] #no need/ignore
+    container-network: sp-example-net
+  
 logging:
-  level:
-    eu.openanalytics.containerproxy.service.HeartbeatService: INFO
   file:
     name: shinyproxy.log
-
-spring:
+spring:                                                                                                                                                   
   session:
     store-type: redis
     timeout: PT4H
-  redis:
-    host: localhost
+  redis:                      
+    host: redis
     port: 6379
-    password: adminadmin
+    password: 12345   
+

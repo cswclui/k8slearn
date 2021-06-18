@@ -53,21 +53,6 @@ proxy:
     type: NodePort
 
   specs:
-    - id: vscode-sidu
-      display-name: VSCode,+MySQL Python+apache+SIDU
-      description: test1234                                                              
-      container-image: cswclui/vscode-sidu:1.0
-      container-cmd: ["start.sh"]
-        #- start.sh
-      port: 8081
-      container-network: sp-example-net
-      container-env:
-        MYSQL_ROOT_PASSWORD: 12345999
-      sub-apps:
-        - path: port/80/index.php
-          display-name: SIDU Database browser
-          description: nil test
-
     - container-cmd:
         - R
         - '-e'
