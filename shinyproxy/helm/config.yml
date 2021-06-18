@@ -54,13 +54,26 @@ proxy:
     type: NodePort
 
   specs:
+    - id: oracle-mysql-datagrip
+      display-name: oracle ,mysql datagrip vscode
+      description: oracle ,mysql datagrip vscode (with mysql 8 server )
+      container-image: cswclui/oracle-mysql-datagrip-vscode:1.2
+      port: 8081 
+      #port: 80
+      container-network: sp-example-net
+      container-cpu-limit: 2.0
+      #container-volumes: ["vol-#{proxy.userId}-datagrip:/home/projector-user"]
+      container-cmd: ["/usr/local/bin/start.sh"] 
+      container-env:
+        WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+
     - id: vscode-rootless-dind
       display-name: vscode with rootless DinD
       description: vscode with rootless DinD
       container-image: cswclui/rootless-dind:1.1
       port: 8081 #NGINX at 8081 port forwards to code-server at 8080
       container-privileged: true
-      container-memory-limit: 400Mi
+      container-memory-limit: 500Mi
       
     - id: vscode-sidu
       display-name: VSCode,+MySQL Python+apache+SIDU

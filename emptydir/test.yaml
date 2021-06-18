@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mydind
+spec:
+  containers:
+  - name: mydind
+    image: cswclui/rootless-dind:1.1
+    volumeMounts:
+    - name: tmp
+      mountPath: /home/rootless/.local/share/docker
+    securityContext:
+      privileged: true
+  volumes:
+  - name: tmp
+    emptyDir: 
+      sizeLimit: "200Mi"
