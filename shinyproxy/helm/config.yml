@@ -66,6 +66,7 @@ proxy:
       container-cmd: ["/usr/local/bin/start.sh"] 
       container-env:
         WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+      container-memory-limit: 4Gi
 
     - id: vscode-rootless-dind
       display-name: vscode with rootless DinD
@@ -83,6 +84,7 @@ proxy:
         #- start.sh
       port: 8081
       container-network: sp-example-net
+      container-memory-limit: 1000Mi
       container-env:
         MYSQL_ROOT_PASSWORD: 12345999
       sub-apps:
@@ -186,4 +188,5 @@ proxy:
       display-name: Jetbrains IDE
       id: jetbrains
       port: 8887
+      container-memory-limit: 2Gi
   title: Open Analytics Shiny Proxy

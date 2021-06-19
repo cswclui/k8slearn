@@ -43,11 +43,12 @@ proxy:
   specs:
   - id: vscode-sidu
     display-name: VSCode,+MySQL Python+apache+SIDU
-    description: test1234                                                              
+    description: test12349999                                                            
     container-image: cswclui/vscode-sidu:1.0
     container-cmd: ["start.sh"]                                                   
     port: 8081
     container-network: sp-example-net
+    container-memory-limit: 2000Mi
     container-env:
       MYSQL_ROOT_PASSWORD: 12345
     sub-apps:
