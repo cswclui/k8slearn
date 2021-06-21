@@ -1,0 +1,71 @@
+# Steps
+Create docker network:
+
+`docker network create mynetwork`
+
+Start Node Exporter:
+
+`docker run -d  --network mynetwork -p 9100:9100 --name node-exporter -v "/:/host:ro,rslave"   quay.io/prometheus/node-exporter:latest   --path.rootfs=/host`
+
+Create Prometheus Config:
+
+`nano prometheus.yml`
+
+```
+global:
+  scrape_interval: 5s
+  external_labels:
+    monitor: 'node'
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['192.168.68.127:9090'] ## IP Address of the localhost
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['192.168.68.127:9100'] ## IP Address of the localhost
+```
+
+Start Prometheus:
+
+`docker run -d --network mynetwork  --name prometheus -p 9090:9090 -v /home/user/k8slearn/prometheus-docker/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus`
+
+
+Acess node exporter at 
+`http://localhost:9100/`
+
+Access prometheus at 
+`http://localhost:9090/`
+
+
+Metrics
+- node_memory_MemAvailable_bytes
+- node_memory_MemTotal_bytes 
+- node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+
+Install Grafana:
+
+`docker run -d --network mynetwork --name=grafana -p 3000:3000 grafana/grafana`
+
+Access localhost:3000
+username and password is `admin`.
+
+Add your data source->select prometheus.
+Set the URL to be `http://prometheus:9090`.
+
+Visit the Explore page. 
+
+Create a dashboard to show the total and available memory of the nodes (in Gigabytes).
+
+node_memory_MemAvailable_bytes/(1024*1024*1024)
+
+node_memory_MemTotal_bytes/(1024*1024*1024)
+
+Import the dashboard
+https://grafana.com/grafana/dashboards/1860
+
+
+# Reference
+
+- https://www.youtube.com/watch?v=83LWo7h_hvs
+- https://stackoverflow.com/questions/48835035/average-memory-usage-query-prometheus
+- https://blog.freshtracks.io/a-deep-dive-into-kubernetes-metrics-part-2-c869581e9f29
