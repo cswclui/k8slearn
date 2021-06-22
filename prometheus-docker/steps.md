@@ -63,9 +63,28 @@ node_memory_MemTotal_bytes/(1024*1024*1024)
 Import the dashboard
 https://grafana.com/grafana/dashboards/1860
 
+# MySQL Exporter
+
+Required grants
+```
+CREATE USER 'exporter'@'localhost' IDENTIFIED BY '12345';
+GRANT PROCESS, REPLICATION CLIENT ON *.* TO 'exporter'@'localhost';
+GRANT SELECT ON performance_schema.* TO 'exporter'@'localhost';
+```
+
+docker run -d -p 9104:9104 --link=my_mysql_container:bdd  \
+        -e DATA_SOURCE_NAME="user:password@(bdd:3306)/database" prom/mysqld-exporter
+
+Access localhost:9104
+
+https://grafana.com/grafana/dashboards/6239
+https://grafana.com/grafana/dashboards/14057
+https://grafana.com/grafana/dashboards/4031
 
 # Reference
 
 - https://www.youtube.com/watch?v=83LWo7h_hvs
 - https://stackoverflow.com/questions/48835035/average-memory-usage-query-prometheus
 - https://blog.freshtracks.io/a-deep-dive-into-kubernetes-metrics-part-2-c869581e9f29
+- https://hub.docker.com/r/prom/mysqld-exporter
+- https://severalnines.com/database-blog/how-monitor-mysql-containers-prometheus-deployment-standalone-and-swarm-part-one
