@@ -44,6 +44,6 @@ Access grafana at localhost:9999
 
 - https://www.youtube.com/watch?v=QoDqxm7ybLc
 - https://gitlab.com/nanuchi/youtube-tutorial-series/-/blob/master/prometheus-exporter/install-prometheus-commands.md
-
+- https://hub.kubeapps.com/charts/prometheus-community/prometheus
 
 

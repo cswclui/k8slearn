@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shinyproxy
+spec:
+  selector:
+    matchLabels:
+      run: shinyproxy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: shinyproxy
+        ver: v1
+    spec:
+      containers:
+      - name: shinyproxy
+        image: endangeredfish/shinyproxy:2.5.0.210622
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/shinyproxy
+        command: ["java", "-jar", "/opt/shinyproxy/shinyproxy.jar", "--spring.config.location=/etc/shinyproxy/application.yml"]
+      volumes:
+        - name: config-volume
+          configMap:
+            name: shinyproxy-config
+    
+
+   

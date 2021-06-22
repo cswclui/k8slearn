@@ -1,0 +1,221 @@
+proxy:
+  users:
+  - name: jack
+    password: password
+    groups: admins
+  - name: jeff
+    password: password
+  admin-groups: scientists
+  authentication: simple
+  container-backend: kubernetes
+  container-wait-time: 1200000
+  engagement:
+    automatic-timeout: 180000
+    enabled: true
+    filter-header:
+    - 33421
+    - 33434
+    - 33482
+    max-age: PT4H
+  heartbeat-rate: 10000
+  heartbeat-timeout: 50000
+  kubernetes:
+    custom-namespace: true
+    internal-networking: true
+    namespace: shinyproxy
+    namespace-prefix: vlab
+    pod-wait-time: 120000
+  landing-page: /
+  livenessProbe: {}
+  logo-url: https://www.openanalytics.eu/shinyproxy/logo.png
+  port: 8080
+  readinessProbe: {}
+  same-site-cookie: none
+  specs:
+  - container-cmd:
+    - /usr/local/bin/start.sh
+    container-cpu-limit: 2
+    container-cpu-request: 200m
+    container-env:
+      WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+    container-image: cswclui/oracle-mysql-datagrip-vscode:1.2
+    container-memory-limit: 4Gi
+    container-memory-request: 100Mi
+    container-network: sp-example-net
+    description: oracle ,mysql datagrip vscode (with mysql 8 server )
+    display-name: oracle ,mysql datagrip vscode 1234567
+    id: oracle-mysql-datagrip
+    port: 8081
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: cswclui/rootless-dind:1.1
+    container-memory-limit: 500Mi
+    container-memory-request: 100Mi
+    container-privileged: true
+    description: vscode with rootless DinD
+    display-name: vscode with rootless DinD
+    id: vscode-rootless-dind
+    port: 8081
+  - container-cmd:
+    - start.sh
+    container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-env:
+      MYSQL_ROOT_PASSWORD: 12345
+    container-image: cswclui/vscode-sidu:1.0
+    container-memory-limit: 1000Mi
+    container-memory-request: 100Mi
+    container-network: sp-example-net
+    description: 1112
+    display-name: VSCode,+MySQL Python+apache+SIDU
+    id: vscode-sidu
+    port: 8081
+    sub-apps:
+    - description: nil test
+      display-name: SIDU Database browser
+      path: port/80/index.php
+  - container-cmd:
+    - R
+    - -e
+    - shinyproxy::run_01_hello()
+    container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: openanalytics/shinyproxy-demo
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    description: Application which demonstrates the basics of a Shiny app
+    display-name: Hello Application 2
+    id: 01_hello
+  - container-cmd:
+    - R
+    - -e
+    - shinyproxy::run_06_tabsets()
+    container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: openanalytics/shinyproxy-demo
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    id: 06_tabsets
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-env:
+      DISABLE_AUTH: true
+      USER: '#{proxy.userId}'
+      USERID: ${USERID}
+      WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+    container-image: openanalytics/shinyproxy-rstudio-ide-demo
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    display-name: RStudio Server ShinyProxy Demo
+    id: rstudio
+    port: 8787
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-env:
+      DISABLE_AUTH: true
+      USERID: rstudio
+      WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+    container-image: cswclui/myrstudio:2.0
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    description: should access through /app_direct/rstudio_tidyverse/
+    display-name: RStudio Server - tidyverse
+    id: rstudio_tidyverse
+    port: 8787
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: apache/zeppelin:0.8.1
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    display-name: Apache Zeppelin
+    id: zeppelin
+    port: 8080
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: nginx
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    display-name: nginx
+    id: nginx
+    kubernetes-additional-manifests:
+    - |
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "pvc-#{proxy.userId}-#{proxySpec.id}"
+      spec:
+        storageClassName: rook-cephfs
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 256Mi
+    kubernetes-pod-patches: |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/usr/share/nginx/html"
+          name: "nginx-volume"
+          subPath: nginx
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "nginx-volume"
+          persistentVolumeClaim:
+            claimName: "pvc-#{proxy.userId}"
+    port: 80
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: cswclui/xterm.js:patched
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    description: original version (xtermjs/xterm.js) is not working under the shinyproxy
+      due to absolute path in index.html and client.ts. Tthe relative path prefix
+      in client.ts and index.html is added (e.g. line129,157 in client.ts)
+    display-name: xterm.js (patched)
+    id: xterm.js
+    port: 3000
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: rocker/shiny
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    display-name: official rshiny docker image
+    id: rshiny
+    port: 3838
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: cswclui/learnrdemo
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    display-name: learnr tutorial demo in rshiny server
+    id: learnr_demo
+    port: 3838
+  - container-cmd:
+    - start.sh
+    - jupyter
+    - notebook
+    - --NotebookApp.token=''
+    - --NotebookApp.base_url='/app_direct/jupyter/'
+    - --NotebookApp.allow_origin='*'
+    container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: cswclui/mynotebook:1.1
+    container-memory-limit: 200Mi
+    container-memory-request: 100Mi
+    description: not working by default, need to configure base_url of jupyternotebook
+      and configure nginx to redirect URI from / to app_direct/jupyter
+    display-name: Jupyter base-notebook
+    id: jupyter
+    port: 7777
+  - container-cpu-limit: 300m
+    container-cpu-request: 200m
+    container-image: registry.jetbrains.team/p/prj/containers/projector-idea-c
+    container-memory-limit: 2Gi
+    container-memory-request: 100Mi
+    description: Jetbrains IDE
+    display-name: Jetbrains IDE
+    id: jetbrains
+    port: 8887
+  title: Open Analytics Shiny Proxy
+  unsafe-label: true
