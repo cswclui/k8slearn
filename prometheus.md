@@ -12,6 +12,7 @@ helm repo update
 ## Install chart
 
 `kubectl create ns prometheus`
+
 `helm install prometheus prometheus-community/kube-prometheus-stack -n prometheus`
 
 
@@ -34,6 +35,7 @@ Get password of grafana.
 `kubectl port-forward  -n prometheus  svc/prometheus-grafana 9999:80 `
 
 username: admin, pw: prom-operator
+
 Access grafana at localhost:9999
 
 ## Uninstall
