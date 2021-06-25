@@ -32,6 +32,20 @@ proxy:
   port: 8080
   readinessProbe: {}
   same-site-cookie: none
+  filebrowser:
+    container-image: cswclui/myfilebrowser
+    port: 9000 
+    container-volumes: [ "vol-#{proxy.userId}-cfg:/data/cfg",
+    "vol-#{proxy.userId}-vscode:/data/vscode",
+    "vol-#{proxy.userId}-vscode-lab1:/data/vscode-lab1",
+    "vol-#{proxy.userId}-vscode-lab2:/data/vscode-lab2",
+    "vol-#{proxy.userId}-jetbrainsc:/data/jetbrain-community",
+    "vol-#{proxy.userId}-jetbrains:/data/jetbrain-ultimate"    
+    ]
+    container-cmd: ["/filebrowser","-b","#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}",
+    "--database=/home/rootless/database.db"
+    ]
+
   specs:
   - container-cmd:
     - /usr/local/bin/start.sh
