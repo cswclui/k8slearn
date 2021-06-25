@@ -22,11 +22,10 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /etc/shinyproxy
-        command: ["java", "-jar", "/opt/shinyproxy/shinyproxy.jar", "--spring.config.location=/etc/shinyproxy/application.yml"]
+        command: ["java", "-jar", "/opt/shinyproxy/shinyproxy.jar", "--spring.config.location=/etc/shinyproxy/config/application.yml"]
       volumes:
         - name: config-volume
-          configMap:
-            name: shinyproxy-config
-    
+          persistentVolumeClaim:
+            claimName: local-path-pvc
 
    
