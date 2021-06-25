@@ -31,6 +31,5 @@ kubectl apply -f sp-deployment.yaml -n shinyproxy
 
 sleep 1
 
-kubectl -n shinyproxy scale deploy/shinyproxy --replicas=0 && \
- kubectl -n shinyproxy scale deploy/shinyproxy --replicas=1
+kubectl -n shinyproxy scale deploy/shinyproxy --replicas=0 &&  kubectl -n shinyproxy scale deploy/shinyproxy --replicas=1
 
