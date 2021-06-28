@@ -7,7 +7,7 @@ kubectl apply -f pvc.yaml
 # setup volume with application.yml and templates
 kubectl create -f init-sp.yaml
 
-sleep 1
+sleep 5
 
 kubectl cp config/ init-shinyproxy:/etc/shinyproxy/ -n shinyproxy
 
@@ -32,4 +32,9 @@ kubectl apply -f sp-deployment.yaml -n shinyproxy
 sleep 1
 
 kubectl -n shinyproxy scale deploy/shinyproxy --replicas=0 &&  kubectl -n shinyproxy scale deploy/shinyproxy --replicas=1
+
+# others
+https://www.cloudops.com/blog/the-ultimate-rook-and-ceph-survival-guide/
+
+`kubectl taint node mymasternode node-role.kubernetes.io/master:NoSchedule`
 
