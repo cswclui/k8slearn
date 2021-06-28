@@ -1,0 +1,99 @@
+#!/bin/sh
+
+#
+# Provision k3s and rook
+#
+
+ip="$1"
+primary="$2"
+
+wait_for_cluster() {
+  while :; do
+    kubectl cluster-info && return
+    sleep 1
+  done
+}
+
+update_k3s_config() {
+  mkdir -p /etc/rancher/k3s
+  echo -n "" >/etc/rancher/k3s/config.yaml
+  echo "node-ip: $ip" >>/etc/rancher/k3s/config.yaml
+  #echo "flannel-iface: eth1" >>/etc/rancher/k3s/config.yaml
+  echo "disable: [traefik,servicelb]" >>/etc/rancher/k3s/config.yaml
+  echo "kube-apiserver-arg: 'feature-gates=RemoveSelfLink=false'" >>/etc/rancher/k3s/config.yaml
+}
+
+update_k3s_agent_config() {
+  mkdir -p /etc/rancher/k3s
+  echo -n "" >/etc/rancher/k3s/config.yaml
+  echo "node-ip: $ip" >>/etc/rancher/k3s/config.yaml
+  #echo "flannel-iface: eth1" >>/etc/rancher/k3s/config.yaml
+}
+
+set -e
+#set -vx
+
+if [ "true" = "${primary}" ]; then
+  # main node
+  apt update
+  apt install -y lvm2
+  update_k3s_config
+  #curl -sfL https://get.k3s.io | sh -s -
+  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--flannel-backend=none --disable-network-policy --cluster-cidr=192.168.0.0/16" sh -
+
+  
+  wait_for_cluster
+  cp /var/lib/rancher/k3s/server/node-token /vagrant/dynamic-config/k3token
+  mkdir -p ~/.kube
+  kubectl config view --raw | sed 's#127.0.0.1#192.168.33.11#' >~/.kube/config
+  chmod 0600 ~/.kube/config
+  cp ~/.kube/config /vagrant/dynamic-config/
+
+  if which helm >/dev/null; then
+    : # helm already installed
+  else
+    curl https://baltocdn.com/helm/signing.asc | apt-key add -
+    apt-get install apt-transport-https --yes
+    echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+    apt-get update
+    apt-get install helm
+  fi
+
+  helm repo add rook-release https://charts.rook.io/release
+  kubectl create namespace rook-ceph --dry-run=client -o yaml | kubectl apply -f -
+  helm upgrade --install --namespace rook-ceph rook-ceph rook-release/rook-ceph
+
+  kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
+  kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+  kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.5/manifests/metallb.yaml
+  kubectl apply -f /vagrant/k8s/metallb-config.yaml
+
+  helm repo add traefik https://helm.traefik.io/traefik
+  helm upgrade --install traefik traefik/traefik --namespace kube-system --values  /vagrant/k8s/traefik-values.yaml
+  kubectl apply -f /vagrant/k8s/traefik-dashboard.yaml
+
+  helm repo add cowboysysop https://cowboysysop.github.io/charts/
+  helm upgrade --install whoami cowboysysop/whoami \
+    --set ingress.enabled=true \
+    --set ingress.hosts[0].host=whoami.192.168.33.20.xip.io \
+    --set ingress.hosts[0].paths[0]="/"
+
+  helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+  helm upgrade --install --namespace kube-system kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
+    --set protocolHttp=true \
+    --set service.externalPort=9090 \
+    --set settings=enable-insecure-login=true \
+    --set ingress.enabled=true \
+    --set ingress.hosts[0]=kubernetes-dashboard.192.168.33.20.xip.io \
+    --set ingress.paths[0]="/"
+  kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+else
+  # additional nodes
+  apt update
+  apt install -y lvm2
+  update_k3s_agent_config
+  curl -sfL https://get.k3s.io \
+    | K3S_URL=https://192.168.33.11:6443 \
+      K3S_TOKEN=$(cat /vagrant/dynamic-config/k3token) \
+      sh -s -
+fi
