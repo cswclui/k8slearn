@@ -1,4 +1,9 @@
-flannel is disabled 
+The scripts are adapated from https://github.com/stblassitude/k3s-rook with flannel  disabled.
+
+`vagrant up`
+
+`cp dynamic-config/config ~/.kube/config`
+
 
 After vagrant up, setup calico as follows.
 
