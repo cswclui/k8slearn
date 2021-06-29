@@ -1,0 +1,108 @@
+proxy:
+  users:
+  - name: jack
+    password: password
+    groups: admins, comp1234, comp2345
+  - name: jeff
+    password: password
+  admin-groups: admins
+  authentication: simple
+  container-backend: kubernetes
+  container-wait-time: 1200000
+  template-path: /etc/shinyproxy/config/templates
+  engagement:
+    automatic-timeout: 60000
+    enabled: true
+    filter-header:
+    - 33421
+    - 33434
+    - 33482
+    max-age: PT4H
+  heartbeat-rate: 10000
+  heartbeat-timeout: 50000
+  kubernetes:
+    custom-namespace: true
+    internal-networking: true
+    namespace: shinyproxy
+    namespace-prefix: vlab
+    pod-wait-time: 120000
+  landing-page: /
+  livenessProbe: {}
+  logo-url: https://www.openanalytics.eu/shinyproxy/logo.png
+  port: 8080
+  readinessProbe: {}
+  same-site-cookie: none
+  filebrowser:
+    container-image: cswclui/myfilebrowser
+    port: 9000 
+    container-cmd: ["/filebrowser","-b","#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}",
+    "--database=/home/rootless/database.db"
+    ]
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/data"
+          name: "shinyproxy-pod-volume"
+          # subPath: workspace
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "shinyproxy-pod-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+  specs:
+  - id: vscode-mysql-python
+    display-name: MySQL with Python
+    description: Click the link below to access the SIDU database browser.
+    container-image: cswclui/vscode-sidu:1.0
+    container-cmd:
+    - start.sh
+    container-cpu-limit: 2000m #2VCPU
+    container-memory-limit: 1000Mi
+    container-memory-request: 500Mi
+    container-env:
+      MYSQL_ROOT_PASSWORD: 12345
+    port: 8081
+    courses: ["comp1001", "comp1002", "comp1003"]
+    sub-apps:
+    - description: 
+      display-name: SIDU database browser 12345
+      path: port/80/index.php
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/root/workspace"
+          name: "shinyproxy-pod-volume"
+          subPath: workspace/vscode-mysql-python
+        - mountPath: "/root/.vscode"
+          name: "shinyproxy-pod-volume"
+          subPath: vscode-cfg
+        - mountPath: "/var/lib/mysql"
+          name: "shinyproxy-pod-volume"
+          subPath: mysql
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "shinyproxy-pod-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
+  - id: vscode-rootless-dind
+    display-name: vscode with rootless DinD
+    description: vscode with rootless DinD 1234
+    container-image: cswclui/rootless-dind:1.1
+    container-cpu-limit: 2000m
+    container-memory-limit: 1500Mi
+    container-memory-request: 500Mi
+    container-privileged: true
+    port: 8081
+  title: PolyU Virtual Labs - COMP1234
+  unsafe-label: true

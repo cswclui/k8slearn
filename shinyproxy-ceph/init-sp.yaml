@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-shinyproxy
+  namespace: shinyproxy
+spec:
+  containers:
+  - name: init-shinyproxy
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    command: ["tail","-f","/dev/null"]
+    volumeMounts:
+    - name: volv
+      mountPath: /etc/shinyproxy
+    ports:
+    - containerPort: 80
+  volumes:
+  - name: volv
+    persistentVolumeClaim:
+      claimName: shinyproxy-pvc

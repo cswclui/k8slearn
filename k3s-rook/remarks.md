@@ -1,10 +1,12 @@
 # Setup
+
 The scripts are adapated from https://github.com/stblassitude/k3s-rook with flannel  disabled.
 
 `vagrant up`
 
 `cp dynamic-config/config ~/.kube/config`
 
+# Enable Ingress
 
 Add the following to /etc/hosts to test the ingress
 
