@@ -6,7 +6,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: rook-ceph-block
+  #storageClassName: rook-ceph-block
+  
   resources:
     requests:
       storage: 200Mi

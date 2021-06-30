@@ -1,3 +1,9 @@
+# preparation
+
+vagrant plugin install vagrant-disksize
+
+
+
 # Setup
 
 The scripts are adapated from https://github.com/stblassitude/k3s-rook with flannel  disabled.

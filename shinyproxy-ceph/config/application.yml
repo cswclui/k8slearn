@@ -56,11 +56,12 @@ proxy:
   specs:
   - id: vscode-mysql-python
     display-name: MySQL with Python
-    description: Click the link below to access the SIDU database browser.
+    description: Click the link below to access the SIDU database browser. 1
     container-image: cswclui/vscode-sidu:1.0
     container-cmd:
     - start.sh
     container-cpu-limit: 2000m #2VCPU
+    container-cpu-request: 500m #2VCPU
     container-memory-limit: 1000Mi
     container-memory-request: 500Mi
     container-env:
