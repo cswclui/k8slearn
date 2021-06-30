@@ -5,8 +5,8 @@ metadata:
   namespace: vlab-jack
 spec:
   accessModes:
-    - ReadWriteOnce
-  #storageClassName: rook-ceph-block
+    - ReadWriteMany
+  storageClassName: rook-cephfs
   resources:
     requests:
       storage: 2Gi
@@ -18,8 +18,8 @@ metadata:
   namespace: vlab-jeff
 spec:
   accessModes:
-    - ReadWriteOnce
-  #storageClassName: rook-ceph-block
+    - ReadWriteMany
+  storageClassName: rook-cephfs
   resources:
     requests:
       storage: 2Gi

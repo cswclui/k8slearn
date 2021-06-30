@@ -5,9 +5,10 @@ metadata:
   namespace: shinyproxy
 spec:
   accessModes:
-    - ReadWriteOnce
-  #storageClassName: rook-ceph-block
-  
+    - ReadWriteMany
+  storageClassName: rook-cephfs
   resources:
     requests:
       storage: 200Mi
+
+      

@@ -11,7 +11,7 @@ sleep 3
 
 kubectl cp config/ init-shinyproxy:/etc/shinyproxy/ -n shinyproxy
 
-kubectl delete -f init-sp.yaml --force
+// kubectl delete -f init-sp.yaml --force
 
 # deploy shinyproxy
 kubectl apply -f sp-authorization.yaml -n shinyproxy
