@@ -79,7 +79,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="modal fade" id="timeout" role="dialog">
+		<div class="modal fade" id="timeout" role="dialog" data-backdrop="static">
 			<div class="modal-dialog">
 
 				<!-- Modal content-->
@@ -98,7 +98,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="modal fade" id="terminate" role="dialog">
+		<div class="modal fade" id="terminate" role="dialog" data-backdrop="static">
 			<div class="modal-dialog">
 
 				<!-- Modal content-->
@@ -157,7 +157,7 @@
 
 					if(time_left < 0 ){
 						clearTimeout(detection);
-						document.getElementById("counter").innerHTML = "";
+						document.getElementById("counter").innerHTML = "Session Timeout";
 						$.ajax({
 							url: '/api/proxy/' + proxy_id,
 							type: 'DELETE',
@@ -186,6 +186,7 @@
 				}).fail(function (){
 					clear = true;
 					clearTimeout(detection);
+					document.getElementById("counter").innerHTML = "Session expired";
 					$("#timeout-modal-body").text("Your app has been terminated due to an extended period of inactivity.");
 					$("#timeout").modal();
 				})

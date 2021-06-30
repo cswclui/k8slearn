@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: shinyproxy
-        image: endangeredfish/shinyproxy:2.5.0.210625
+        image: endangeredfish/shinyproxy:2.5.0.210629
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080

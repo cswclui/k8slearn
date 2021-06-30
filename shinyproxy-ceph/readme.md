@@ -40,6 +40,7 @@ kubectl -n shinyproxy scale deploy/shinyproxy --replicas=0 &&  kubectl -n shinyp
 
 # References
 
+
 - https://www.cloudops.com/blog/the-ultimate-rook-and-ceph-survival-guide/
 - https://github.com/stblassitude/k3s-rook
 

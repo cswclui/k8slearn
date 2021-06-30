@@ -1,4 +1,6 @@
 proxy:
+  title: PolyU Virtual Labs - COMP12345
+  unsafe-label: true
   users:
   - name: jack
     password: password
@@ -44,12 +46,12 @@ proxy:
         path: /spec/containers/0/volumeMounts
         value:
         - mountPath: "/data"
-          name: "shinyproxy-pod-volume"
+          name: "user-volume"
           # subPath: workspace
       - op: add
         path: /spec/volumes
         value:
-        - name: "shinyproxy-pod-volume"
+        - name: "user-volume"
           namespace: shinyproxy
           persistentVolumeClaim:
             claimName: "ceph-pvc-#{proxy.userId}"
@@ -61,7 +63,7 @@ proxy:
     container-cmd:
     - start.sh
     container-cpu-limit: 2000m #2VCPU
-    container-cpu-request: 500m #2VCPU
+    container-cpu-request: 200m 
     container-memory-limit: 1000Mi
     container-memory-request: 500Mi
     container-env:
@@ -78,32 +80,117 @@ proxy:
         path: /spec/containers/0/volumeMounts
         value:
         - mountPath: "/root/workspace"
-          name: "shinyproxy-pod-volume"
+          name: "user-volume"
           subPath: workspace/vscode-mysql-python
         - mountPath: "/root/.vscode"
-          name: "shinyproxy-pod-volume"
+          name: "user-volume"
           subPath: vscode-cfg
         - mountPath: "/var/lib/mysql"
-          name: "shinyproxy-pod-volume"
+          name: "user-volume"
           subPath: mysql
       - op: add
         path: /spec/volumes
         value:
-        - name: "shinyproxy-pod-volume"
+        - name: "user-volume"
           namespace: shinyproxy
           persistentVolumeClaim:
             claimName: "ceph-pvc-#{proxy.userId}"
       - op: add
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
-  - id: vscode-rootless-dind
-    display-name: vscode with rootless DinD
-    description: vscode with rootless DinD 1234
+  - id: docker-playground
+    display-name: Docker playground
+    description: You can try Docker using this app. 123456
     container-image: cswclui/rootless-dind:1.1
     container-cpu-limit: 2000m
+    container-cpu-request: 200m
     container-memory-limit: 1500Mi
     container-memory-request: 500Mi
     container-privileged: true
     port: 8081
-  title: PolyU Virtual Labs - COMP1234
-  unsafe-label: true
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/home/rootless/workspace"
+          name: "user-volume"
+          subPath: workspace/docker-playground
+        - mountPath: "/home/rootless/app/vscode"
+          name: "user-volume"
+          subPath: vscode-cfg        
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
+  - id: rstudio_tidyverse
+    description: The files will only persist if it is stored under /home/rstudio/workspace 
+    display-name: RStudio
+    container-image: cswclui/myrstudio:2.6
+    container-cpu-limit: 2000m
+    container-cpu-request: 200m
+    container-memory-limit: 2000Mi
+    container-memory-request: 500Mi
+    container-env:
+      XDG_DATA_HOME: "/rstudio-state" #storing rstudio state data:ignored
+      DISABLE_AUTH: true
+      USERID: rstudio
+      WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+    port: 8787   
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/home/rstudio"
+          name: "user-volume"
+          subPath: workspace/RStudio
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
+  - id: jupyter
+    display-name: Jupyter Notebook
+    description: The id should be "jupyter" (hard-coded in the nginx rule).123
+    container-image: cswclui/mynotebook:2.0
+    container-cmd: ["mystart.sh", 
+    "start-notebook.sh", "--NotebookApp.token=''", 
+    --NotebookApp.allow_origin='*',
+    --notebook-dir='/home/jovyan/workspace',
+    "--NotebookApp.base_url=#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"]
+    container-cpu-limit: 2000m
+    container-cpu-request: 200m
+    container-memory-limit: 2000Mi
+    container-memory-request: 400Mi
+    port: 7777
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/home/jovyan/workspace"
+          name: "user-volume"
+          subPath: workspace/jupyter
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
+
