@@ -28,6 +28,7 @@ proxy:
     namespace: shinyproxy
     namespace-prefix: vlab
     pod-wait-time: 120000
+    image-pull-policy: Always
   landing-page: /
   livenessProbe: {}
   logo-url: https://www.openanalytics.eu/shinyproxy/logo.png
@@ -132,13 +133,13 @@ proxy:
   - id: rstudio_tidyverse
     description: The files will only persist if it is stored under /home/rstudio/workspace 
     display-name: RStudio
-    container-image: cswclui/myrstudio:2.6
+    container-image: cswclui/myrstudio:2.8
     container-cpu-limit: 2000m
     container-cpu-request: 200m
     container-memory-limit: 2000Mi
     container-memory-request: 500Mi
     container-env:
-      XDG_DATA_HOME: "/rstudio-state" #storing rstudio state data:ignored
+      #XDG_DATA_HOME: "/rstudio-state" #storing rstudio state data:seems ignored
       DISABLE_AUTH: true
       USERID: rstudio
       WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
@@ -163,12 +164,13 @@ proxy:
         value: "1Gi"
   - id: jupyter
     display-name: Jupyter Notebook
-    description: The id should be "jupyter" (hard-coded in the nginx rule).123
+    description: The id should be "jupyter" (hard-coded in the nginx rule). install package in user's home folder: !pip install --user flask
     container-image: cswclui/mynotebook:2.0
     container-cmd: ["mystart.sh", 
     "start-notebook.sh", "--NotebookApp.token=''", 
     --NotebookApp.allow_origin='*',
     --notebook-dir='/home/jovyan/workspace',
+    #--notebook-dir='/home/jovyan',
     "--NotebookApp.base_url=#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"]
     container-cpu-limit: 2000m
     container-cpu-request: 200m
@@ -183,6 +185,12 @@ proxy:
         - mountPath: "/home/jovyan/workspace"
           name: "user-volume"
           subPath: workspace/jupyter
+        - mountPath: "/home/jovyan/.ipython"
+          name: "user-volume"
+          subPath: cfg/jupyter/.ipython
+        - mountPath: "/home/jovyan/.local"
+          name: "user-volume"
+          subPath: cfg/jupyter/.local
       - op: add
         path: /spec/volumes
         value:
@@ -194,3 +202,4 @@ proxy:
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
 
+#will not persist user installed librarires
