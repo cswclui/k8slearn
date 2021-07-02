@@ -1,5 +1,6 @@
 proxy:
-  title: PolyU Virtual Labs - COMP12345
+  title: PolyU Virtual Labs - ${proxy.course-id}
+  course-id: COMP1004
   unsafe-label: true
   users:
   - name: jack
@@ -11,7 +12,7 @@ proxy:
   authentication: simple
   container-backend: kubernetes
   container-wait-time: 1200000
-  template-path: /etc/shinyproxy/config/templates
+  #template-path: /etc/shinyproxy/config/templates
   engagement:
     automatic-timeout: 60000
     enabled: true
@@ -57,12 +58,22 @@ proxy:
           persistentVolumeClaim:
             claimName: "ceph-pvc-#{proxy.userId}"
   specs:
-  - id: mysql_browser
-    display-name: SIDU MySQL Browser
-    #description: Click the link below to access the SIDU database browser. 1.1
+  - id: mysql 
+    display-name: MySQL1 
+    description: Can be customized by teacher123
     container-image: cswclui/vscode-sidu:1.1
-    container-cmd:
-    - start.sh
+    container-cmd: 
+      - bash
+      - -c
+      - > 
+        cd ~/workspace/ &&
+        git init && git config core.sparseCheckout true &&
+        git remote add origin  https://github.com/cswclui/demo_lab &&
+        echo "lab1" >> .git/info/sparse-checkout &&
+        git pull origin main 
+        ; pwd
+        ; cd ~/workspace/lab1 && bash init.sh
+        ; start.sh
     container-cpu-limit: 2000m #2VCPU
     container-cpu-request: 200m 
     container-memory-limit: 1000Mi
@@ -71,13 +82,16 @@ proxy:
       MYSQL_ROOT_PASSWORD: 12345
       START_MYSQL: true
       START_APACHED: true
+      COURSEID: "${proxy.course-id}"
+      APPID: mysql
     port: 8081
     courses: ["comp1001", "comp1002", "comp1003"]
     sub-apps:
-    - description: 
-      display-name: SIDU database browser 123456
+    - description:  SIDU is a simple, intuitive and easy database admin tool for MySQl and Postgre DB.
+      display-name: SIDU database admin tool
       path: port/80/index.php
-    - display-name: VSCode 1112
+    - display-name: VSCode
+      description: 123 Start a terminal within VSCode to access the MySQL database using mysql command line client.
       path: ""
       
     kubernetes-pod-patches: #bind container to Ceph volume
@@ -87,13 +101,13 @@ proxy:
         value:
         - mountPath: "/root/workspace"
           name: "user-volume"
-          subPath: workspace/mysql_browser
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.containerSpecs[0].env.APPID}
         - mountPath: "/root/.vscode"
           name: "user-volume"
           subPath: cfg/vscode
         - mountPath: "/var/lib/mysql"
           name: "user-volume"
-          subPath: mysql
+          subPath: db/${proxy.course_id}/mysql
       - op: add
         path: /spec/volumes
         value:
@@ -122,7 +136,7 @@ proxy:
     courses: ["comp1001", "comp1002", "comp1003"]
     sub-apps:
     - description: 
-      display-name: Launch the App
+      display-name: Launch App
       path: ""
     kubernetes-pod-patches: #bind container to Ceph volume
     |
@@ -199,7 +213,7 @@ proxy:
     port: 8787   
     sub-apps:
     - description: 
-      display-name: Launch the App
+      display-name: Launch App
       path: ""
     kubernetes-pod-patches: #bind container to Ceph volume
     |
@@ -239,7 +253,7 @@ proxy:
     port: 7777
     sub-apps:
     - description: 
-      display-name: Launch the App
+      display-name: Launch App
       path: ""
     kubernetes-pod-patches: #bind container to Ceph volume
     |
@@ -289,7 +303,7 @@ proxy:
         - mountPath: "/home/oracle/.vscode"
           name: "user-volume"
           subPath: cfg/vscode
-        - mountPath: "/home/projector-user"
+        - mountPath: "/root"
           name: "user-volume"
           subPath: cfg/datagrip
       - op: add
