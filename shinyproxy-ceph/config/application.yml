@@ -58,8 +58,8 @@ proxy:
           persistentVolumeClaim:
             claimName: "ceph-pvc-#{proxy.userId}"
   specs:
-  - id: mysql 
-    display-name: MySQL1 
+  - id: mysql
+    display-name: MySQL Lab
     description: Can be customized by teacher123
     container-image: cswclui/vscode-sidu:1.1
     container-cmd: 
@@ -83,9 +83,9 @@ proxy:
       START_MYSQL: true
       START_APACHED: true
       COURSEID: "${proxy.course-id}"
-      APPID: mysql
+      APPID: "#{proxySpec.id}"
+      #PS1: '\w\$ '
     port: 8081
-    courses: ["comp1001", "comp1002", "comp1003"]
     sub-apps:
     - description:  SIDU is a simple, intuitive and easy database admin tool for MySQl and Postgre DB.
       display-name: SIDU database admin tool
@@ -162,7 +162,7 @@ proxy:
       - op: add
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
-  - id: docker-playground
+  - id: docker
     display-name: Docker playground
     description: You can try Docker using this app. 123456
     container-image: cswclui/rootless-dind:1.1
@@ -174,7 +174,7 @@ proxy:
     port: 8081
     sub-apps:
     - description: 
-      display-name: Launch the App
+      display-name: Launch App
       path: ""
     kubernetes-pod-patches: #bind container to Ceph volume
     |
@@ -197,8 +197,8 @@ proxy:
       - op: add
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
-  - id: rstudio_tidyverse
-    description: 199 The files will only persist if it is stored under /home/rstudio/workspace 
+  - id: rstudio
+    description:  The files will only persist if it is stored under /home/rstudio/workspace 
     display-name: RStudio
     container-image: cswclui/myrstudio:2.9
     container-cpu-limit: 2000m
@@ -244,7 +244,6 @@ proxy:
     "start-notebook.sh", "--NotebookApp.token=''", 
     --NotebookApp.allow_origin='*',
     --notebook-dir='/home/jovyan/workspace',
-    #--notebook-dir='/home/jovyan',
     "--NotebookApp.base_url=#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"]
     container-cpu-limit: 2000m
     container-cpu-request: 200m
@@ -280,8 +279,8 @@ proxy:
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
 
-  - id: oracle-mysql-datagrip
-    display-name: oracle ,mysql datagrip vscode
+  - id: oracle
+    display-name: Oracle Database
     description: oracle ,mysql datagrip vscode (with mysql 8 server )111
     container-image: cswclui/oracle-mysql-datagrip-vscode:1.2
     port: 8081 
@@ -292,6 +291,13 @@ proxy:
     container-cmd: ["/usr/local/bin/start.sh"] 
     container-env:
       WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+    sub-apps:
+    - description:  Launch a terminal to start Oracle database server (start-oracle), MySQL 8 Server (start-mysql) and DataGrip (start-datagrip)
+      display-name: VSCode
+      path: ""
+    - display-name: DataGrip
+      description: Launch the Jetbrain Datagrip to access DB
+      path: "db"
     kubernetes-pod-patches: #bind container to Ceph volume
     |
       - op: add
