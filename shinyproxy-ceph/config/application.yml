@@ -281,8 +281,8 @@ proxy:
 
   - id: oracle
     display-name: Oracle Database
-    description: oracle ,mysql datagrip vscode (with mysql 8 server )111
-    container-image: cswclui/oracle-mysql-datagrip-vscode:1.2
+    description: 999 Oracle ,mysql datagrip vscode (with mysql 8 server )11122
+    container-image: cswclui/oracle-mysql-datagrip-vscode:1.3
     port: 8081 
     container-cpu-limit: 2000m
     container-cpu-request: 200m
@@ -303,15 +303,21 @@ proxy:
       - op: add
         path: /spec/containers/0/volumeMounts
         value:
-        - mountPath: "/home/oracle/workspace"
+        - mountPath: "/root/workspace"
           name: "user-volume"
           subPath: workspace/oracle
-        - mountPath: "/home/oracle/.vscode"
+        - mountPath: "/root/.vscode"
           name: "user-volume"
           subPath: cfg/vscode
-        - mountPath: "/root"
+        - mountPath: "/root/.config"
           name: "user-volume"
-          subPath: cfg/datagrip
+          subPath: cfg/datagrip/.config
+        - mountPath: "/root/.java"
+          name: "user-volume"
+          subPath: cfg/datagrip/.java
+        - mountPath: "/root/.local"
+          name: "user-volume"
+          subPath: cfg/datagrip/.local
       - op: add
         path: /spec/volumes
         value:
