@@ -11,9 +11,9 @@ helm repo update
 
 ## Install chart
 
-`kubectl create ns prometheus`
+kubectl create ns prometheus
 
-`helm install prometheus prometheus-community/kube-prometheus-stack -n prometheus`
+helm install prometheus prometheus-community/kube-prometheus-stack -n prometheus
 
 
 # Launch Prometheus
