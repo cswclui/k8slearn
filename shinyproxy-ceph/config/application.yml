@@ -237,8 +237,9 @@ proxy:
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
   - id: jupyter
-    display-name: Jupyter Notebook2
-    description: The id should be "jupyter" (hard-coded in the nginx rule). install package in user's !pip install --user flask
+    display-name: Jupyter Notebook3
+    description:  > 
+      To install package in user's home directory: !pip install --user flask
     container-image: cswclui/mynotebook:2.1
     container-cmd: ["mystart.sh", 
     "start-notebook.sh", "--NotebookApp.token=''", 
