@@ -2,6 +2,7 @@ proxy:
   title: PolyU Virtual Labs - ${proxy.course-id}
   course-id: COMP1004
   unsafe-label: true
+  container-quantity-limit: 2
   users:
   - name: jack
     password: password
@@ -71,7 +72,7 @@ proxy:
         git remote add origin  https://github.com/cswclui/demo_lab &&
         echo "lab1" >> .git/info/sparse-checkout &&
         git pull origin main 
-        ; pwd
+        ; rm -rf .git
         ; cd ~/workspace/lab1 && bash init.sh
         ; start.sh
     container-cpu-limit: 2000m #2VCPU
@@ -83,16 +84,16 @@ proxy:
       START_MYSQL: true
       START_APACHED: true
       COURSEID: "${proxy.course-id}"
-      APPID: "#{proxySpec.id}"
+      DB_HOMEPAGE: true #whether /db is the homepage
       #PS1: '\w\$ '
     port: 8081
     sub-apps:
     - description:  SIDU is a simple, intuitive and easy database admin tool for MySQl and Postgre DB.
       display-name: SIDU database admin tool
-      path: port/80/index.php
+      path: db/
     - display-name: VSCode
       description: 123 Start a terminal within VSCode to access the MySQL database using mysql command line client.
-      path: ""
+      path: vscode/
       
     kubernetes-pod-patches: #bind container to Ceph volume
     |
@@ -101,13 +102,13 @@ proxy:
         value:
         - mountPath: "/root/workspace"
           name: "user-volume"
-          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.containerSpecs[0].env.APPID}
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
         - mountPath: "/root/.vscode"
           name: "user-volume"
-          subPath: cfg/vscode
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
         - mountPath: "/var/lib/mysql"
           name: "user-volume"
-          subPath: db/${proxy.course_id}/mysql
+          subPath: db/#{proxySpec.containerSpecs[0].env.COURSEID}/mysql
       - op: add
         path: /spec/volumes
         value:
@@ -132,8 +133,9 @@ proxy:
       MYSQL_ROOT_PASSWORD: 12345
       START_MYSQL: false
       START_APACHED: false
+      DB_HOMEPAGE: false
+      COURSEID: "${proxy.course-id}"
     port: 8081
-    courses: ["comp1001", "comp1002", "comp1003"]
     sub-apps:
     - description: 
       display-name: Launch App
@@ -145,10 +147,10 @@ proxy:
         value:
         - mountPath: "/root/workspace"
           name: "user-volume"
-          subPath: workspace/vscode-pytyon
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
         - mountPath: "/root/.vscode"
           name: "user-volume"
-          subPath: cfg/vscode
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
         - mountPath: "/var/lib/mysql"
           name: "user-volume"
           subPath: mysql
@@ -172,6 +174,8 @@ proxy:
     container-memory-request: 500Mi
     container-privileged: true
     port: 8081
+    container-env:
+      COURSEID: "${proxy.course-id}"
     sub-apps:
     - description: 
       display-name: Launch App
@@ -183,10 +187,10 @@ proxy:
         value:
         - mountPath: "/home/rootless/workspace"
           name: "user-volume"
-          subPath: workspace/docker-playground
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}  
         - mountPath: "/home/rootless/app/vscode"
           name: "user-volume"
-          subPath: cfg/vscode       
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}      
       - op: add
         path: /spec/volumes
         value:
@@ -206,6 +210,7 @@ proxy:
     container-memory-limit: 2000Mi
     container-memory-request: 500Mi
     container-env:
+      COURSEID: "${proxy.course-id}"
       #XDG_DATA_HOME: "/rstudio-state" #storing rstudio state data:seems ignored
       DISABLE_AUTH: true
       USERID: rstudio
@@ -222,10 +227,10 @@ proxy:
         value:
         - mountPath: "/home/rstudio/workspace"
           name: "user-volume"
-          subPath: workspace/RStudio
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id} 
         - mountPath: "/home/rstudio/.R"
           name: "user-volume"
-          subPath: cfg/RStudio/.R
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}/.R
       - op: add
         path: /spec/volumes
         value:
@@ -248,6 +253,7 @@ proxy:
     "--NotebookApp.base_url=#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"]
     container-env:
       WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}" #used by openresty
+      COURSEID: "${proxy.course-id}"
     container-cpu-limit: 2000m
     container-cpu-request: 200m
     container-memory-limit: 2000Mi
@@ -264,13 +270,13 @@ proxy:
         value:
         - mountPath: "/home/jovyan/workspace"
           name: "user-volume"
-          subPath: workspace/jupyter
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id} 
         - mountPath: "/home/jovyan/.ipython"
           name: "user-volume"
-          subPath: cfg/jupyter/.ipython
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}/.ipython
         - mountPath: "/home/jovyan/.local"
           name: "user-volume"
-          subPath: cfg/jupyter/.local
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}/.local
       - op: add
         path: /spec/volumes
         value:
@@ -284,7 +290,7 @@ proxy:
 
   - id: oracle
     display-name: Oracle Database
-    description: 999 Oracle ,mysql datagrip vscode (with mysql 8 server )11122
+    description:  Oracle ,mysql datagrip vscode (with mysql 8 server )
     container-image: cswclui/oracle-mysql-datagrip-vscode:1.3
     port: 8081 
     container-cpu-limit: 2000m
@@ -294,6 +300,7 @@ proxy:
     container-cmd: ["/usr/local/bin/start.sh"] 
     container-env:
       WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+      COURSEID: "${proxy.course-id}"
     sub-apps:
     - description:  Launch a terminal to start Oracle database server (start-oracle), MySQL 8 Server (start-mysql) and DataGrip (start-datagrip)
       display-name: VSCode
@@ -308,19 +315,22 @@ proxy:
         value:
         - mountPath: "/root/workspace"
           name: "user-volume"
-          subPath: workspace/oracle
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id} 
         - mountPath: "/root/.vscode"
           name: "user-volume"
-          subPath: cfg/vscode
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id} 
         - mountPath: "/root/.config"
           name: "user-volume"
-          subPath: cfg/datagrip/.config
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}/.config
         - mountPath: "/root/.java"
           name: "user-volume"
-          subPath: cfg/datagrip/.java
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}/.java
         - mountPath: "/root/.local"
           name: "user-volume"
-          subPath: cfg/datagrip/.local
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}/.local
+        - mountPath: "/var/lib/mysql"
+          name: "user-volume"
+          subPath: db/#{proxySpec.containerSpecs[0].env.COURSEID}/mysql
       - op: add
         path: /spec/volumes
         value:
@@ -331,7 +341,58 @@ proxy:
       - op: add
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
-#will not persist user installed librarires
+
+  - id: postgres
+    display-name: postgres with vscode
+    description: postgres with vscode 1.2
+    container-image: cswclui/mypostgres-pgadmin:1.2
+    port: 8083 #nginx->vscode/posgres
+    container-env:
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_USER: root
+      PGADMIN_DEFAULT_EMAIL: root@root.com
+      PGADMIN_DEFAULT_PASSWORD: 12345
+      #send /app_direct/postgres to pgadmin
+      #SCRIPT_NAME: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"  #host pgadmin under subdirectory
+      SCRIPT_NAME: /app_direct/postgres/db #for nginx-postgres generate URL with this prefix (no trailing /)
+      COURSEID: "${proxy.course-id}"
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/home/root/workspace"
+          name: "user-volume"
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id} 
+        - mountPath: "/home/root/.vscode"
+          name: "user-volume"
+          subPath: cfg/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
+        - mountPath: "/var/lib/postgresql/data"
+          name: "user-volume"
+          subPath: db/posgres
+        - mountPath: "/var/lib/pgadmin"
+          name: "user-volume"
+          subPath: cfg/pgadmin4
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
+  
+    #target-path: /app_direct/postgres #prefix added to the URL sent to the app
+    
+    
+    
+    #container-volumes: ["vol-#{proxy.userId}-posgres:/var/lib/postgresql/data",
+    #"vol-#{proxy.userId}-pgadmin:/var/lib/pgadmin",
+    #"vol-#{proxy.userId}-cfg:/home/root/.vscode",
+    #"vol-#{proxy.userId}-vscode-postgres:/home/root/workspace"
+    #]
 
 
 
