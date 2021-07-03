@@ -383,7 +383,18 @@ proxy:
       - op: add
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
-  
+
+  - id: jetbrains
+    description: Jetbrains IDE. http://192.168.10.128:32094/app/jetbrains?host=192.168.10.128:32094/app_direct/jetbrains/
+    display-name: Jetbrains IDE
+    container-cpu-limit: 3000m
+    container-cpu-request: 200m
+    container-image: registry.jetbrains.team/p/prj/containers/projector-idea-c
+    container-memory-limit: 2Gi
+    container-memory-request: 500Mi
+    
+
+    port: 8887
     #target-path: /app_direct/postgres #prefix added to the URL sent to the app
     
     
