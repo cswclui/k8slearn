@@ -237,14 +237,16 @@ proxy:
         path: /spec/containers/0/resources/requests/ephemeral-storage
         value: "1Gi"
   - id: jupyter
-    display-name: Jupyter Notebook
+    display-name: Jupyter Notebook2
     description: The id should be "jupyter" (hard-coded in the nginx rule). install package in user's !pip install --user flask
-    container-image: cswclui/mynotebook:2.0
+    container-image: cswclui/mynotebook:2.1
     container-cmd: ["mystart.sh", 
     "start-notebook.sh", "--NotebookApp.token=''", 
     --NotebookApp.allow_origin='*',
     --notebook-dir='/home/jovyan/workspace',
     "--NotebookApp.base_url=#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"]
+    container-env:
+      WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}" #used by openresty
     container-cpu-limit: 2000m
     container-cpu-request: 200m
     container-memory-limit: 2000Mi
