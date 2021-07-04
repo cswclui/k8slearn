@@ -15,7 +15,7 @@ proxy:
   container-wait-time: 1200000
   #template-path: /etc/shinyproxy/config/templates
   engagement:
-    automatic-timeout: 60000
+    automatic-timeout: 120000
     enabled: true
     filter-header:
     - 33421
@@ -419,7 +419,43 @@ proxy:
         value: "1Gi"
     #target-path: /app_direct/postgres #prefix added to the URL sent to the app
     
-    
+  - id: omnidb
+    description: oracle with omnidb. admin:admin, system:12345
+    display-name: omnidb
+    container-cpu-limit: 10000m
+    container-cpu-request: 200m
+    container-image: cswclui/myoracle18c-vscode:1.0
+    container-memory-limit: 3Gi
+    container-memory-request: 1000Mi  
+    container-env:
+      WWW_ROOT_PATH: "#{proxySpec.containerSpecs[0].env.get('SHINYPROXY_PUBLIC_PATH')}"
+      COURSEID: "${proxy.course-id}"
+    port: 7777
+    sub-apps:
+    - description:  ""
+      display-name: "OmniDB"
+      path: ""
+    - description:  ""
+      display-name: "VSCode"
+      path: "vscode/"
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/root"
+          name: "user-volume"
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
     
     #container-volumes: ["vol-#{proxy.userId}-posgres:/var/lib/postgresql/data",
     #"vol-#{proxy.userId}-pgadmin:/var/lib/pgadmin",

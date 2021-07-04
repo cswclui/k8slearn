@@ -59,4 +59,4 @@ To remove taint:
 kubectl taint node node-1 node-role.kubernetes.io/master:NoSchedule-
 
 
- kubectl taint node master-1 CriticalAddonsOnly=true:NoSchedule
+ kubectl taint node master-1 node-role.kubernetes.io/master:NoSchedule
