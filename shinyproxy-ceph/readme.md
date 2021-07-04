@@ -57,3 +57,6 @@ Prevent schedule pods on a node:
 To remove taint:
 
 kubectl taint node node-1 node-role.kubernetes.io/master:NoSchedule-
+
+
+ kubectl taint node master-1 CriticalAddonsOnly=true:NoSchedule
