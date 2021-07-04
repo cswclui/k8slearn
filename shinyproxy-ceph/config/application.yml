@@ -392,9 +392,31 @@ proxy:
     container-image: registry.jetbrains.team/p/prj/containers/projector-idea-c
     container-memory-limit: 2Gi
     container-memory-request: 500Mi
-    
-
     port: 8887
+    sub-apps:
+    - description:  Jetbrain Intellij IDE
+      display-name: Launch App
+      path: ?host=192.168.10.128:32094/app_direct/jetbrains/
+    container-env:
+      COURSEID: "${proxy.course-id}"
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/home/projector-user/"
+          name: "user-volume"
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
     #target-path: /app_direct/postgres #prefix added to the URL sent to the app
     
     
