@@ -467,7 +467,7 @@ proxy:
     #target-path: /app_direct/postgres #prefix added to the URL sent to the app
     
   - id: omnidb
-    description: oracle with omnidb. admin:admin, system:12345
+    description: oracle with omnidb. admin:admin, system:12345, oracle pw (system,Oracle18)
     display-name: omnidb
     container-cpu-limit: 10000m
     container-cpu-request: 200m
