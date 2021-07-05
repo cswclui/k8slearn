@@ -79,6 +79,9 @@ proxy:
       #PS1: '\w\$ '
     port: 8081
     sub-apps:
+    - description:  
+      display-name: OmniDB (admin:admin). Login to MySQL (root:12345)
+      path: ""
     - description:  SIDU is a simple, intuitive and easy database admin tool for MySQl and Postgre DB.
       display-name: SIDU database admin tool
       path: db/
