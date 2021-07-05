@@ -59,6 +59,50 @@ proxy:
           persistentVolumeClaim:
             claimName: "ceph-pvc-#{proxy.userId}"
   specs:
+  - id: mysql-omnidb
+    display-name: MySQL Lab
+    description: with Omnidb
+    container-image: cswclui/mysql-omnidb:1.0
+    container-cmd: 
+      - start.sh
+    container-cpu-limit: 2000m #2VCPU
+    container-cpu-request: 200m 
+    container-memory-limit: 1000Mi
+    container-memory-request: 500Mi
+    container-env:
+      MYSQL_ROOT_PASSWORD: 12345
+      START_MYSQL: true
+      START_APACHED: true
+      COURSEID: "${proxy.course-id}"
+      DB_HOMEPAGE: true #whether /db is the homepage
+      WWW_ROOT_PATH: '#{proxySpec.containerSpecs[0].env.get(''SHINYPROXY_PUBLIC_PATH'')}'
+      #PS1: '\w\$ '
+    port: 8081
+    sub-apps:
+    - description:  SIDU is a simple, intuitive and easy database admin tool for MySQl and Postgre DB.
+      display-name: SIDU database admin tool
+      path: db/
+    - display-name: VSCode
+      description: 123 Start a terminal within VSCode to access the MySQL database using mysql command line client.
+      path: vscode/
+    kubernetes-pod-patches: #bind container to Ceph volume
+    |
+      - op: add
+        path: /spec/containers/0/volumeMounts
+        value:
+        - mountPath: "/root"
+          name: "user-volume"
+          subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
+      - op: add
+        path: /spec/volumes
+        value:
+        - name: "user-volume"
+          namespace: shinyproxy
+          persistentVolumeClaim:
+            claimName: "ceph-pvc-#{proxy.userId}"
+      - op: add
+        path: /spec/containers/0/resources/requests/ephemeral-storage
+        value: "1Gi"
   - id: mysql
     display-name: MySQL Lab
     description: Can be customized by teacher123
@@ -166,7 +210,7 @@ proxy:
         value: "1Gi"
   - id: docker
     display-name: Docker playground
-    description: You can try Docker using this app. 123456
+    description: You can try Docker using this app. 12345611
     container-image: cswclui/rootless-dind:1.1
     container-cpu-limit: 2000m
     container-cpu-request: 200m
@@ -199,7 +243,7 @@ proxy:
           persistentVolumeClaim:
             claimName: "ceph-pvc-#{proxy.userId}"
       - op: add
-        path: /spec/containers/0/resources/requests/ephemeral-storage
+        path: /spec/containers/0/resources/limits/ephemeral-storage
         value: "1Gi"
   - id: rstudio
     description:  The files will only persist if it is stored under /home/rstudio/workspace 
