@@ -43,7 +43,7 @@ spec:
 
 Sample application.yaml with prometheus enabled:
 
-https://github.com/cswclui/k8slearn/blob/main/shinyproxy/helm/application.yml
+https://github.com/cswclui/k8slearn/blob/main/shinyproxy-ceph/config/application.yml
 
 Prometheus metrics is available at 
 [nodeIP]:32095/actuator/prometheus
