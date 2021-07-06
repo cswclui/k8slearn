@@ -1,0 +1,1 @@
+helm upgrade  --install prometheus prometheus-community/kube-prometheus-stack -n prometheus -f stack-values.yaml

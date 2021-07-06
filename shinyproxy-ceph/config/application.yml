@@ -1,4 +1,5 @@
 proxy:
+  usage-stats-url: micrometer
   title: PolyU Virtual Labs - ${proxy.course-id}
   course-id: COMP1004
   unsafe-label: true
@@ -509,7 +510,11 @@ proxy:
     #"vol-#{proxy.userId}-cfg:/home/root/.vscode",
     #"vol-#{proxy.userId}-vscode-postgres:/home/root/workspace"
     #]
-
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 
 

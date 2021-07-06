@@ -88,3 +88,8 @@ https://grafana.com/grafana/dashboards/4031
 - https://blog.freshtracks.io/a-deep-dive-into-kubernetes-metrics-part-2-c869581e9f29
 - https://hub.docker.com/r/prom/mysqld-exporter
 - https://severalnines.com/database-blog/how-monitor-mysql-containers-prometheus-deployment-standalone-and-swarm-part-one
+
+
+# others
+
+appStarts_total{job="shinyproxy"}[15m]

@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app.kubernetes.io/instance: shinyproxy
+    app.kubernetes.io/name: shinyproxy
+  name: shinyproxy
+  namespace: shinyproxy
+spec:
+  rules:
+  - host: sp.192.168.10.200.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: shinyproxy
+            port:
+              number: 8080
+        path: /
+        pathType: ImplementationSpecific
+status:
+  loadBalancer: {}

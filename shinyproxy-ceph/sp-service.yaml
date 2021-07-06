@@ -9,5 +9,11 @@ spec:
   ports:
   - protocol: TCP
     port: 8080
+    name: http
     targetPort: 8080
     nodePort: 32094
+  - protocol: TCP
+    port: 9090
+    name: metrics
+    targetPort: 9090
+    nodePort: 32095
