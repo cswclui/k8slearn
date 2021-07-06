@@ -1,3 +1,6 @@
+# Setup 
+
+
 Create `stack-values.yaml`:
 ```
 additionalScrapeConfigs: 
@@ -41,3 +44,8 @@ spec:
 
 Prometheus metrics is available at 
 [nodeIP]:32095/actuator/prometheus
+
+
+# Reference:
+
+- Helm chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
