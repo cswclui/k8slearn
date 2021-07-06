@@ -13,7 +13,6 @@ additionalScrapeConfigs:
 
 Install prometheus, grafana, and enable setup shinyproxy scrapconfig for prometheus.
 
-
 `helm upgrade  --install prometheus prometheus-community/kube-prometheus-stack -n prometheus -f stack-values.yaml`
 
 
@@ -41,6 +40,10 @@ spec:
     targetPort: 9090
     nodePort: 32095
 ```
+
+Sample application.yaml with prometheus enabled:
+
+https://github.com/cswclui/k8slearn/blob/main/shinyproxy/helm/application.yml
 
 Prometheus metrics is available at 
 [nodeIP]:32095/actuator/prometheus
