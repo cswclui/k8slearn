@@ -8,13 +8,15 @@ additionalScrapeConfigs:
       - targets: ['shinyproxy.shinyproxy.svc.cluster.local:9090'] 
 ```
 
+Install prometheus, grafana, and enable setup shinyproxy scrapconfig for prometheus.
 
-Execute:
+
 `helm upgrade  --install prometheus prometheus-community/kube-prometheus-stack -n prometheus -f stack-values.yaml`
 
 
 
-Shinyproxy service manifest:
+Deploy Shinyproxy service to expoese port 8080 and 9090.
+
 ```
 kind: Service
 apiVersion: v1
@@ -38,4 +40,4 @@ spec:
 ```
 
 Prometheus metrics is available at 
-localhost:32095/actuator/prometheus
+[nodeIP]:32095/actuator/prometheus
