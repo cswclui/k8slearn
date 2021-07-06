@@ -3,12 +3,24 @@
 
 Create `stack-values.yaml`:
 ```
-additionalScrapeConfigs: 
-  - job_name: 'shinyproxy'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      # note: this is the port of ShinyProxy Actuator services, not the port of Prometheus which is by default also 9090
-      - targets: ['shinyproxy.shinyproxy.svc.cluster.local:9090'] 
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs: 
+      - job_name: 'shinyproxy'
+        metrics_path: '/actuator/prometheus'
+        static_configs:
+          # note: this is the port of ShinyProxy Actuator services, not the port of Prometheus which is by default also 9090
+          - targets: ['shinyproxy.shinyproxy.svc.cluster.local:9090'] 
+
+kube-state-metrics:
+  namespaceOverride: ""
+  rbac:
+    create: true
+  podSecurityPolicy:
+    enabled: true
+  extraArgs: 
+    #- "--metric-labels-allowlist=[app.kubernetes.io/instance,app.kubernetes.io/name,openanalytics.eu/sp-spec-id,openanalytics.eu/sp-user-id]"
+    - "--metric-labels-allowlist=pods=[openanalytics.eu/*,COURSEID]"
 ```
 
 Install prometheus, grafana, and enable setup shinyproxy scrapconfig for prometheus.

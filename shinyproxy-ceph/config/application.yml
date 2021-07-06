@@ -70,6 +70,8 @@ proxy:
     container-cpu-request: 200m 
     container-memory-limit: 1000Mi
     container-memory-request: 500Mi
+    labels:
+      COURSEID: "${proxy.course-id}"
     container-env:
       MYSQL_ROOT_PASSWORD: 12345
       START_MYSQL: true

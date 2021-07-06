@@ -60,3 +60,10 @@ kubectl taint node node-1 node-role.kubernetes.io/master:NoSchedule-
 
 
  kubectl taint node master-1 node-role.kubernetes.io/master:NoSchedule
+
+
+ # port-forward ingress
+
+ kubectl port-forward svc/ingress-nginx-controller -n kube-system --address=0.0.0.0  8085:80 8086:443
+
+

@@ -8,7 +8,8 @@ metadata:
   namespace: shinyproxy
 spec:
   rules:
-  - host: sp.192.168.10.200.nip.io
+  #- host: sp.192.168.10.200.nip.io
+  - host: sp.vl.comp.polyu.edu.hk
     http:
       paths:
       - backend:
