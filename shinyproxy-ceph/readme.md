@@ -54,6 +54,10 @@ Prevent schedule pods on a node:
 `kubectl taint node node-1 node-role.kubernetes.io/master:NoSchedule`
 `kubectl taint node node-2 node-role.kubernetes.io/master:NoSchedule`
 
+
+
+kubectl taint node master-1 node-role.kubernetes.io/master:PreferNoSchedule
+
 To remove taint:
 
 kubectl taint node node-1 node-role.kubernetes.io/master:NoSchedule-
