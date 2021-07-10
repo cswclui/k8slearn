@@ -61,8 +61,8 @@ proxy:
             claimName: "ceph-pvc-#{proxy.userId}"
   specs:
   - id: mysql-omnidb
-    display-name: MySQL Lab
-    description: with Omnidb
+    display-name: MySQL Lab 113
+    description: with Omnidb 111
     container-image: cswclui/mysql-omnidb:1.0
     container-cmd: 
       - start.sh
@@ -99,6 +99,9 @@ proxy:
         - mountPath: "/root"
           name: "user-volume"
           subPath: workspace/#{proxySpec.containerSpecs[0].env.COURSEID}/#{proxySpec.id}
+        - mountPath: "/var/lib/mysql"
+          name: "user-volume"
+          subPath: db/#{proxySpec.containerSpecs[0].env.COURSEID}/mysql
       - op: add
         path: /spec/volumes
         value:
