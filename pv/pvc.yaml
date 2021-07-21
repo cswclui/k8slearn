@@ -1,7 +1,25 @@
+#https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: docker-pv
+  labels:
+    type: local
+spec:
+  storageClassName: hostpath
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data"
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: task-pv-claim
+  name: docker-pvc
+  namespace: vlab-jack
 spec:
   storageClassName: hostpath
   accessModes:
