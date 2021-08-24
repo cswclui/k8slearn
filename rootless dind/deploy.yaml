@@ -22,6 +22,18 @@ spec:
         resources:
           limits:
             cpu: 3
-            memory: 9000Mi
-        
-# docker run  -e MYSQL_ROOT_PASSWORD=123 mysql
+            memory: 3000Mi
+        volumeMounts:
+          - mountPath: "/home/rootless/.local/share/docker"
+            name: "dind-emptydir"
+      volumes:
+      #- name: dind
+      #  persistentVolumeClaim:
+      #    claimName: dind-test-pvc
+      - name: "dind-emptydir"
+        emptyDir:
+          sizeLimit: 20Gi    
+
+
+
+# docker run  -e MYSQL_ROOT_PASSWORD=123 mysql          

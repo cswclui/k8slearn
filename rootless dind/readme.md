@@ -1,0 +1,1 @@
+docker run --name test --privileged -p 8080:8080 -p 8081:8081  --cpus=3 --memory=3000m cswclui/rootless-dind:1.1
