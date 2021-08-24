@@ -21,7 +21,7 @@ spec:
           privileged: true
         resources:
           limits:
-            cpu: 2
-            memory: 7000Mi
+            cpu: 3
+            memory: 9000Mi
         
 # docker run  -e MYSQL_ROOT_PASSWORD=123 mysql
