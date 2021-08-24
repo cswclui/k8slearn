@@ -1,0 +1,27 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: dind-deployment 
+  labels: 
+    app: nginx
+spec: 
+  replicas: 1 
+  selector: 
+    matchLabels:
+      app: dind 
+  template: #The pod template that gets deployed
+    metadata:
+      labels: 
+        app: dind
+    spec:
+      containers:
+      - name: dind-container 
+        image: cswclui/rootless-dind:1.1 
+        securityContext:
+          privileged: true
+        resources:
+          limits:
+            cpu: 2
+            memory: 7000Mi
+        
+# docker run  -e MYSQL_ROOT_PASSWORD=123 mysql
